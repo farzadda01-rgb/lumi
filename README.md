@@ -62,3 +62,25 @@ Tests cover:
 - Booking validation (past slot rejection, duplicate slot prevention)
 - Appointment cancellation status transition
 - String resource verification
+
+---
+
+## Automated GitHub CI/CD Releases
+
+A GitHub Actions workflow (`.github/workflows/release.yml`) is included to automatically build and release the application whenever code is pushed:
+
+- **Trigger Conditions**:
+  - Every `push` to the `main` or `master` branch.
+  - Every tag push matching `v*` (e.g. `git tag v1.0.0 && git push origin v1.0.0`).
+  - Manual trigger via GitHub's **Actions** tab (`workflow_dispatch`).
+
+- **Automated Outputs**:
+  - 📱 **Release APK** (`LUMI-*.apk`): Direct standalone installable file for testing and sideloading.
+  - 📦 **Release AAB** (`LUMI-*.aab`): Android App Bundle ready for Google Play Console submission.
+  - 🏷️ **GitHub Release**: Automatically created under the repository's **Releases** tab with download assets attached.
+
+- **Optional Signing Secrets (in GitHub Repository Settings -> Secrets and variables -> Actions)**:
+  - `KEYSTORE_BASE64`: Base64 string of your release `.jks` or `.keystore` file (`base64 -w 0 my-upload-key.jks`).
+  - `STORE_PASSWORD`: Keystore store password.
+  - `KEY_PASSWORD`: Key alias password.
+  *(Note: If secrets are omitted, the workflow automatically generates a self-signed release keystore so builds always succeed out of the box).*

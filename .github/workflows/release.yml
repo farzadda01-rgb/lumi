@@ -1,0 +1,148 @@
+name: Build & Release Android App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-release:
+    name: Build Release APK & AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Prepare .env Configuration
+        run: |
+          if [ ! -f ".env" ]; then
+            cp .env.example .env
+          fi
+
+      - name: Configure Release Signing Key
+        id: setup-keystore
+        run: |
+          KEYSTORE_DIR="${RUNNER_TEMP}/keystore"
+          mkdir -p "$KEYSTORE_DIR"
+          KEYSTORE_FILE="$KEYSTORE_DIR/release.jks"
+
+          if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+            echo "Using release keystore provided in GitHub Secrets..."
+            echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "$KEYSTORE_FILE"
+            STORE_PASS="${{ secrets.STORE_PASSWORD }}"
+            KEY_PASS="${{ secrets.KEY_PASSWORD }}"
+          else
+            echo "No custom keystore secret detected. Generating CI release signing key..."
+            STORE_PASS="lumi_ci_store_pass_2026"
+            KEY_PASS="lumi_ci_key_pass_2026"
+            keytool -genkeypair -v \
+              -keystore "$KEYSTORE_FILE" \
+              -alias "upload" \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass "$STORE_PASS" \
+              -keypass "$KEY_PASS" \
+              -dname "CN=LUMI Release, OU=Mobile, O=LUMI, L=SanFrancisco, ST=CA, C=US"
+          fi
+
+          echo "KEYSTORE_PATH=$KEYSTORE_FILE" >> $GITHUB_ENV
+          echo "STORE_PASSWORD=$STORE_PASS" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=$KEY_PASS" >> $GITHUB_ENV
+
+      - name: Run Unit & Robolectric Tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Build Release APK & App Bundle (AAB)
+        run: ./gradlew assembleRelease bundleRelease
+
+      - name: Prepare Artifacts for Distribution
+        id: prepare-artifacts
+        run: |
+          mkdir -p dist
+
+          VERSION_NAME="1.0.0"
+          BUILD_TAG="${{ github.ref_name }}"
+          if [[ "$BUILD_TAG" == v* ]]; then
+            RELEASE_TAG="$BUILD_TAG"
+          else
+            RELEASE_TAG="v${VERSION_NAME}-build.${{ github.run_number }}"
+          fi
+          echo "RELEASE_TAG=$RELEASE_TAG" >> $GITHUB_ENV
+
+          # Copy APK
+          APK_SRC=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          if [ -f "$APK_SRC" ]; then
+            cp "$APK_SRC" "dist/LUMI-${RELEASE_TAG}.apk"
+            echo "Copied APK to dist/LUMI-${RELEASE_TAG}.apk"
+          fi
+
+          # Copy AAB
+          AAB_SRC=$(find app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          if [ -f "$AAB_SRC" ]; then
+            cp "$AAB_SRC" "dist/LUMI-${RELEASE_TAG}.aab"
+            echo "Copied AAB to dist/LUMI-${RELEASE_TAG}.aab"
+          fi
+
+      - name: Upload Artifacts to Workflow Run
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumi-release-${{ env.RELEASE_TAG }}
+          path: dist/
+          retention-days: 30
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "LUMI Release ${{ env.RELEASE_TAG }}"
+          body: |
+            ## ✨ LUMI — Premium Appointment Booking Release
+            
+            **Automated GitHub CI/CD Build**
+            - **Commit**: `${{ github.sha }}`
+            - **Ref**: `${{ github.ref }}`
+            - **Run Number**: `#${{ github.run_number }}`
+            
+            ### Included Release Assets:
+            - 📱 **APK**: Standalone installable Android application package (`.apk`)
+            - 📦 **AAB**: Android App Bundle (`.aab`) ready for Google Play Console upload
+            
+            ### What's New:
+            - Full native Jetpack Compose & Material 3 architecture
+            - Room Database & DataStore persistent local storage
+            - Verified against unit & Robolectric automated test suite
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.apk
+            dist/*.aab
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
