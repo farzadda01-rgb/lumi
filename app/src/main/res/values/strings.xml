@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">LUMI</string>
+    <string name="app_tagline">Your time. Your ritual.</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_bookings">Bookings</string>
+    <string name="nav_profile">Profile</string>
+    <string name="search_placeholder">Search services or providers</string>
+    <string name="explore_services">Explore services</string>
+    <string name="popular_services">Popular Services</string>
+    <string name="upcoming_appointment">Upcoming Appointment</string>
+    <string name="view_details">View Details</string>
+    <string name="book_appointment">Book Appointment</string>
+    <string name="continue_action">Continue</string>
+    <string name="confirm_booking">Confirm Booking</string>
+    <string name="booking_confirmed">Booking Confirmed</string>
+    <string name="view_my_bookings">View My Bookings</string>
+    <string name="back_to_home">Back to Home</string>
+    <string name="demo_disclaimer">Demonstration Mode • Local offline storage</string>
+    <string name="cancel_booking">Cancel Booking</string>
+</resources>

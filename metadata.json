@@ -1,0 +1,6 @@
+{
+  "name": "LUMI",
+  "description": "Premium appointment booking for beauty, wellness, and personal-care services.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
