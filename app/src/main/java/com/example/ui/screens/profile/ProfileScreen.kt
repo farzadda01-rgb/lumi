@@ -19,11 +19,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
@@ -250,7 +250,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 ProfileSectionGroup(title = "Support & Legal") {
                     ProfileMenuItem(
-                        icon = Icons.Default.HelpOutline,
+                        icon = Icons.AutoMirrored.Filled.HelpOutline,
                         title = "Help & Support",
                         subtitle = "Sanctuary hours & FAQs",
                         onClick = {

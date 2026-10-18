@@ -19,10 +19,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -236,7 +236,7 @@ fun ExploreScreen(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Sort,
+                                imageVector = Icons.AutoMirrored.Filled.Sort,
                                 contentDescription = "Sort",
                                 tint = LumiPlum,
                                 modifier = Modifier.size(16.dp)
